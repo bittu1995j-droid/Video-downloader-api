@@ -33,3 +33,13 @@ async def fetch_video(url: str):
             return {"title": video_title, "thumbnail": thumbnail, "links": download_links}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    ydl_opts = {
+        'quiet': True, 
+        'no_warnings': True, 
+        'format': 'best',
+        'noplaylist': True,
+        'extract_flat': False,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+    }
