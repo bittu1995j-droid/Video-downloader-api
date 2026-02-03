@@ -27,7 +27,24 @@ async def fetch_video(url: str):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
-        }
+        }            for f in formats:
+                # Sirf MP4 formats uthane ke liye
+                if f.get('ext') == 'mp4' or f.get('vcodec') != 'none':
+                    res = f.get('height')
+                    if res:
+                        download_links.append({
+                            "quality": f"{res}p", 
+                            "ext": "mp4", 
+                            "url": f.get('url')
+                        })
+                # Audio ke liye
+                if f.get('vcodec') == 'none' and f.get('ext') == 'm4a':
+                    download_links.append({
+                        "quality": "Audio (MP3)", 
+                        "ext": "mp3", 
+                        "url": f.get('url')
+                    })
+
     }
 
     try:
