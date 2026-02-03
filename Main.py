@@ -35,24 +35,15 @@ async def fetch_video(url: str):
             formats = info.get('formats', [])
             download_links = []
             
-            # Formats dhoondne ka naya logic (Instagram/YouTube dono ke liye)
             for f in formats:
-                # Video + Audio (MP4) uthane ke liye
+                # Video + Audio (MP4) logic
                 if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
                     res = f.get('height')
                     if res:
-                        download_links.append({
-                            "quality": f"{res}p", 
-                            "ext": "mp4", 
-                            "url": f.get('url')
-                        })
-                # Sirf Audio (MP3) ke liye
+                        download_links.append({"quality": f"{res}p", "ext": "mp4", "url": f.get('url')})
+                # Audio logic
                 elif f.get('vcodec') == 'none' and (f.get('ext') == 'm4a' or f.get('acodec') != 'none'):
-                    download_links.append({
-                        "quality": "Audio (MP3)", 
-                        "ext": "mp3", 
-                        "url": f.get('url')
-                    })
+                    download_links.append({"quality": "Audio (MP3)", "ext": "mp3", "url": f.get('url')})
             
             return {
                 "title": info.get('title', 'Video'),
