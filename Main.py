@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import yt_dlp
+import os
 
 app = FastAPI()
 
@@ -22,29 +23,10 @@ async def fetch_video(url: str):
         'format': 'best',
         'noplaylist': True,
         'nocheckcertificate': True,
-        'geo_bypass': True,
+        'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-        }            for f in formats:
-                # Sirf MP4 formats uthane ke liye
-                if f.get('ext') == 'mp4' or f.get('vcodec') != 'none':
-                    res = f.get('height')
-                    if res:
-                        download_links.append({
-                            "quality": f"{res}p", 
-                            "ext": "mp4", 
-                            "url": f.get('url')
-                        })
-                # Audio ke liye
-                if f.get('vcodec') == 'none' and f.get('ext') == 'm4a':
-                    download_links.append({
-                        "quality": "Audio (MP3)", 
-                        "ext": "mp3", 
-                        "url": f.get('url')
-                    })
-
+        }
     }
 
     try:
@@ -53,14 +35,24 @@ async def fetch_video(url: str):
             formats = info.get('formats', [])
             download_links = []
             
+            # Formats dhoondne ka naya logic (Instagram/YouTube dono ke liye)
             for f in formats:
+                # Video + Audio (MP4) uthane ke liye
                 if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
                     res = f.get('height')
-                    if res in [360, 720, 1080]:
-                        download_links.append({"quality": f"{res}p", "ext": "mp4", "url": f.get('url')})
-                
-                if f.get('vcodec') == 'none' and f.get('ext') == 'm4a':
-                    download_links.append({"quality": "Audio (MP3)", "ext": "mp3", "url": f.get('url')})
+                    if res:
+                        download_links.append({
+                            "quality": f"{res}p", 
+                            "ext": "mp4", 
+                            "url": f.get('url')
+                        })
+                # Sirf Audio (MP3) ke liye
+                elif f.get('vcodec') == 'none' and (f.get('ext') == 'm4a' or f.get('acodec') != 'none'):
+                    download_links.append({
+                        "quality": "Audio (MP3)", 
+                        "ext": "mp3", 
+                        "url": f.get('url')
+                    })
             
             return {
                 "title": info.get('title', 'Video'),
@@ -68,5 +60,4 @@ async def fetch_video(url: str):
                 "links": download_links
             }
     except Exception as e:
-        # Agar block ho jaye toh detailed error dikhaye
         raise HTTPException(status_code=500, detail=str(e))
