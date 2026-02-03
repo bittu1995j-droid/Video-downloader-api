@@ -26,7 +26,7 @@ async def fetch_video(url: str):
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        }
+    'nothrow_on_empty_user_agent': True, 'concurrent_fragment_downloads': 10.    }
     }
 
     try:
