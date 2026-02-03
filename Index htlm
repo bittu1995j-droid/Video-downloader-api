@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Video Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-white min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">
+                Universal Video Downloader
+            </h1>
+            <p class="text-slate-400 text-lg">Download from YouTube, Insta, TikTok & More!</p>
+        </div>
+
+        <div class="max-w-3xl mx-auto bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input id="videoUrl" type="text" placeholder="Paste link here..." 
+                    class="flex-1 p-4 rounded-xl bg-slate-700 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white">
+                <button onclick="fetchVideoData()" id="btnAction" class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center">
+                    Analyze Link
+                </button>
+            </div>
+
+            <div id="loader" class="hidden mt-8 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                <p class="mt-2 text-slate-400">Searching video... Please wait.</p>
+            </div>
+
+            <div id="resultArea" class="hidden mt-10 space-y-6">
+                <div class="flex flex-col md:flex-row gap-6 items-center border-t border-slate-700 pt-8">
+                    <img id="thumb" src="" alt="Thumbnail" class="w-full md:w-48 rounded-lg shadow-md">
+                    <h2 id="videoTitle" class="text-xl font-bold text-center md:text-left"></h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="downloadLinks"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchVideoData() {
+            const url = document.getElementById('videoUrl').value;
+            const loader = document.getElementById('loader');
+            const resultArea = document.getElementById('resultArea');
+            const downloadLinks = document.getElementById('downloadLinks');
+            const btn = document.getElementById('btnAction');
+
+            if (!url) { alert("Please paste a link!"); return; }
+
+            loader.classList.remove('hidden');
+            resultArea.classList.add('hidden');
+            btn.disabled = true;
+
+            try {
+                // Aapka Live Render Backend URL
+                const BASE_URL = "https://video-api-zlz0.onrender.com"; 
+                const response = await fetch(`${BASE_URL}/fetch-video?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+
+                if (data.links && data.links.length > 0) {
+                    document.getElementById('thumb').src = data.thumbnail;
+                    document.getElementById('videoTitle').innerText = data.title;
+                    downloadLinks.innerHTML = '';
+                    
+                    data.links.forEach(link => {
+                        downloadLinks.innerHTML += `
+                            <a href="${link.url}" target="_blank" class="bg-green-600 p-4 rounded-xl text-center font-bold hover:opacity-90 transition-all shadow-lg">
+                                Download ${link.quality} (${link.ext.toUpperCase()})
+                            </a>`;
+                    });
+                    resultArea.classList.remove('hidden');
+                } else { 
+                    alert("Could not find video formats. Check server logs."); 
+                }
+            } catch (error) {
+                alert("Server busy or Link not supported.");
+            } finally {
+                loader.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
